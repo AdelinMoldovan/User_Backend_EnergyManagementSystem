@@ -13,8 +13,8 @@ public class BrowserCorsConfiguration {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        //corsConfig.addAllowedOrigin("http://localhost:4200");
-        corsConfig.addAllowedOrigin("http://localhost:4201");
+        corsConfig.addAllowedOrigin("http://localhost:4200");
+        corsConfig.addAllowedOrigin("http://localhost:4201"); //-docker
         corsConfig.addAllowedOrigin("http://localhost:8081");
         //corsConfig.addAllowedOrigin("*");
         corsConfig.addAllowedMethod("*");

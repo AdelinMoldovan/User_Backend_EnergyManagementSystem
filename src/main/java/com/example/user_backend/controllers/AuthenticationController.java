@@ -5,6 +5,9 @@ import com.example.user_backend.controllers.handlers.exceptions.InvalidPasswordE
 import com.example.user_backend.controllers.handlers.exceptions.ResourceNotFoundException;
 import com.example.user_backend.dtos.UserDTO;
 import com.example.user_backend.models.Role;
+import com.example.user_backend.models.User;
+import com.example.user_backend.security.jwt.JwtResponse;
+import com.example.user_backend.security.jwt.JwtTokenUtil;
 import com.example.user_backend.services.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,21 +25,24 @@ public class AuthenticationController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
     @PostMapping("/login")
-    @CrossOrigin("http://localhost:4201")
-    public ResponseEntity<String> login(@RequestBody Map<String, String> credentials) {
+    @CrossOrigin("*") //--docker
+//    @CrossOrigin("http://localhost:4200")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("username");
         String password = credentials.get("password");
 
-        UserDTO user;
-        ObjectMapper objectMapper = new ObjectMapper();
+        User user;
         try {
             user = userService.getUserByLogin(username, password);
-            return new ResponseEntity<>(objectMapper.writeValueAsString(user), HttpStatus.OK);
+            final String token = jwtTokenUtil.generateToken(user);
+
+            return ResponseEntity.ok(new JwtResponse(token));
         } catch (ResourceNotFoundException | InvalidPasswordException e) {
             return new ResponseEntity<>(e.getResource(), e.getStatus());
-        } catch (JsonProcessingException e) {
-            return new ResponseEntity<>("", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -57,5 +63,6 @@ public class AuthenticationController {
             return new ResponseEntity<>("", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 }
 

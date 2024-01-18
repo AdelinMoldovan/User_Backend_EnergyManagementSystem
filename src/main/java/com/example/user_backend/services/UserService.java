@@ -10,13 +10,16 @@ import org.slf4j.LoggerFactory;
 import com.example.user_backend.models.User;
 import com.example.user_backend.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
 
@@ -29,6 +32,12 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findUserByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Not found"));
+    }
+
+
     public UserDTO findUserById(Long id) {
         Optional<User> userOptional = userRepository.findById(id);
 
@@ -40,7 +49,7 @@ public class UserService {
         return UserBuilder.toUserDTO(userOptional.get());
     }
 
-    public UserDTO getUserByLogin(String username, String password) {
+    public User getUserByLogin(String username, String password) {
         Optional<User> userOptional = userRepository.findUserByUsername(username);
 
         if (!userOptional.isPresent()) {
@@ -49,7 +58,7 @@ public class UserService {
 
         User user = userOptional.get();
         if (user.getPassword().equals(password)) {
-            return UserBuilder.toUserDTO(user);
+            return user;
         } else {
             throw new InvalidPasswordException("Invalid password for user with username: " + username);
         }
